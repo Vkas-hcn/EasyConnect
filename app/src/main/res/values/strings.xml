@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Easy Connect</string>
+    <string name="fast_service">Fast Server</string>
+    <string name="no_permissions">No permission</string>
+    <string name="locations">Servers</string>
+    <string name="_00_00_00">00:00:00</string>
+    <string name="connected_failed">please try again</string>
+    <string name="vpn_connect">Connect success</string>
+    <string name="vpn_disconnect">Disconnected</string>
+    <string name="vpn">VPN</string>
+    <string name="cant_user_vpn">Due to policy reasons,this service is not available in your country</string>
+    <string name="contact_us">Contact us</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="share">Share</string>
+    <string name="google_ad_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="connection_time">connection time</string>
+    <string name="connect">Connect</string>
+    <string name="connected">Connected</string>
+
+    <string name="connecting">Connecting…</string>
+    <string name="disconnecting">Disconnecting…</string>
+
+    <string name="connecteds">Connected！</string>
+    <string name="disconnecteds">Disconnected！</string>
+
+</resources>

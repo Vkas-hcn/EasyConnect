@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:binding="http://schemas.android.com/tools"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="presenter"
+            type="com.vkas.easyconnect.ecui.ecmain.MainActivity.EcClick" />
+
+        <variable
+            name="vpnAdEc"
+            type="Boolean"
+            android:value="false" />
+
+        <variable
+            name="vpnState"
+            type="Integer"
+            android:value="0" />
+
+        <variable
+            name="sidebarShowsEc"
+            type="Boolean"
+            android:value="false" />
+    </data>
+
+    <FrameLayout
+        android:id="@+id/ec_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@mipmap/bg_bamboo"
+            android:orientation="vertical">
+
+            <include
+                android:id="@+id/main_title"
+                layout="@layout/layout_toolbar_ec" />
+
+            <LinearLayout
+                android:id="@+id/linearLayout2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/main_title">
+
+                <TextView
+                    android:id="@+id/textView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="@string/connection_time"
+                    android:textColor="#FFCDCDCD"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/lin_service" />
+
+                <TextView
+                    android:id="@+id/txt_timer_ec"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:gravity="center"
+                    android:text="@string/_00_00_00"
+                    android:textColor="#FF000000"
+                    android:textSize="26sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+
+            </LinearLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cl_switch_ec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:onClick="@{() ->presenter.linkService()}"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
+
+                <FrameLayout
+                    android:id="@+id/fl_connect"
+                    android:layout_width="226dp"
+                    android:layout_height="226dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/img_state"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@mipmap/ic_main_connect"
+                        android:visibility="@{vpnState!=1 ? View.VISIBLE : View.GONE}" />
+
+                    <com.airbnb.lottie.LottieAnimationView
+                        android:id="@+id/lav_view_ec"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="@{vpnState==1 ? View.VISIBLE : View.GONE}"
+                        app:lottie_fileName="data.json"
+                        app:lottie_loop="true" />
+                </FrameLayout>
+                <TextView
+                    android:id="@+id/img_connectionStatus"
+                    android:layout_width="191dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_connect"
+                    android:gravity="center"
+                    android:onClick="@{() ->presenter.linkService()}"
+                    android:text="@string/connect"
+                    android:textColor="#FFFFFBF7"
+                    android:textSize="18sp"
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/fl_connect" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+            <LinearLayout
+                android:layout_width="191dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_service"
+                android:gravity="center"
+                android:onClick="@{() ->presenter.clickService()}"
+                android:orientation="horizontal"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cl_switch_ec">
+
+                <ImageView
+                    android:id="@+id/img_country"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="left|center_vertical"
+                    android:src="@mipmap/ic_unitedkingdom" />
+
+                <TextView
+                    android:id="@+id/txt_country"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="7dp"
+                    android:gravity="center"
+                    android:textColor="#FF333333"
+                    android:textSize="14sp"
+                    app:drawableEndCompat="@mipmap/ic_service_bow" />
+
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="243dp"
+                android:layout_margin="14dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <FrameLayout
+                    android:id="@+id/ec_ad_frame"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_connect"
+                    android:visibility="@{vpnAdEc ? View.VISIBLE : View.GONE}" />
+
+                <ImageView
+                    android:id="@+id/img_ec_ad_frame"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:scaleType="fitXY"
+                    android:src="@mipmap/ic_ad_occupy"
+                    android:visibility="@{vpnAdEc ? View.GONE : View.VISIBLE}" />
+            </FrameLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <include
+            android:id="@+id/in_home_navigation"
+            layout="@layout/layout_main_navigation_ec"
+            android:visibility="@{sidebarShowsEc ? View.VISIBLE : View.GONE}"
+            binding:presenter="@{presenter}" />
+
+    </FrameLayout>
+</layout>

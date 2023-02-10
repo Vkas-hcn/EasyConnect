@@ -1,0 +1,80 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-parcelize'
+    id 'kotlin-kapt'
+}
+
+android {
+    compileSdk rootProject.ext.android.compileSdk
+
+    defaultConfig {
+        applicationId "com.vkas.easyconnect"
+        minSdk rootProject.ext.android.minSdk
+        targetSdk rootProject.ext.android.targetSdk
+        versionCode rootProject.ext.android.versionCode
+        versionName rootProject.ext.android.versionName
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    dataBinding {
+        enabled = true
+    }
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    implementation project(':shadowsocks')
+
+    //androidx项目xui
+    implementation 'com.github.xuexiangjys:XUI:1.2.0'
+    implementation 'com.github.xuexiangjys.XUtil:xutil-core:2.0.0'
+    implementation 'io.github.jeremyliao:live-event-bus-x:1.8.0'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.8'
+    implementation 'com.tencent:mmkv:1.2.14'
+    api 'cat.ereza:customactivityoncrash:2.3.0'
+    implementation rootProject.ext.dependencies.coreKtx
+    implementation rootProject.ext.dependencies.fragmentKtx
+    implementation rootProject.ext.dependencies.lifeCycleKtx
+    implementation rootProject.ext.dependencies.liveDataKtx
+    implementation rootProject.ext.dependencies.viewModelKtx
+    implementation rootProject.ext.dependencies.appcompat
+    implementation rootProject.ext.dependencies.material
+    implementation rootProject.ext.dependencies.constraintlayout
+    implementation rootProject.ext.dependencies.coroutines
+    implementation rootProject.ext.dependencies.androidUtilCode
+    implementation rootProject.ext.dependencies.lottie
+    implementation platform(rootProject.ext.dependencies.firebaseBom)
+    implementation rootProject.ext.dependencies.firebaseConfigKtx
+    implementation rootProject.ext.dependencies.gmsAds
+    implementation rootProject.ext.dependencies.gson
+    implementation rootProject.ext.dependencies.rxpermissions
+    implementation rootProject.ext.dependencies.glide
+    implementation rootProject.ext.dependencies.transformations
+
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    testImplementation 'junit:junit:4.12'
+
+}
