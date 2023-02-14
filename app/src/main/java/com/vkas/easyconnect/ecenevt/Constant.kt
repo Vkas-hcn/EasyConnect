@@ -4,9 +4,9 @@ object Constant {
     // 分享地址
     const val SHARE_EC_ADDRESS="https://play.google.com/store/apps/details?id="
     // privacy_agreement
-    const val PRIVACY_EC_AGREEMENT="https://www.baidu.com/"
+    const val PRIVACY_EC_AGREEMENT="https://sites.google.com/view/easy-connect/%E4%BD%8F%E5%AE%85"
     // email
-    const val MAILBOX_EC_ADDRESS="vkas@qq.com"
+    const val MAILBOX_EC_ADDRESS="fexdwa31t@gmail.com"
     const val RETURN_EC_CURRENT_PAGE ="returnEcCurrentPage"
     // 广告数据
     const val ADVERTISING_EC_DATA="advertisingEcData"
