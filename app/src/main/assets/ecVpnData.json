@@ -1,26 +1,10 @@
 [
   {
-    "ec_pwd": "p=5J=dmDnsGtmEk0",
+    "ec_pwd": "M=cmJT7VQe6x1ObN",
     "ec_method": "chacha20-ietf-poly1305",
-    "ec_port": 3871,
-    "ec_country": "Canada",
-    "ec_city": "Montreal",
-    "ec_ip": "149.56.131.117"
-  },
-  {
-    "ec_pwd": "p=5J=dmDnsGtmEk0",
-    "ec_method": "chacha20-ietf-poly1305",
-    "ec_port": 3872,
+    "ec_port": 6391,
     "ec_country": "SouthKorea",
     "ec_city": "Seoul",
-    "ec_ip": "158.247.217.252"
-  },
-  {
-    "ec_pwd": "p=5J=dmDnsGtmEk0",
-    "ec_method": "chacha20-ietf-poly1305",
-    "ec_port": 3873,
-    "ec_country": "United States",
-    "ec_city": "Los Angeces",
-    "ec_ip": "92.223.30.94"
+    "ec_ip": "38.54.40.145"
   }
 ]
