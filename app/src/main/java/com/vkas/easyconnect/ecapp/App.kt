@@ -2,6 +2,7 @@ package com.vkas.easyconnect.ecapp
 
 import android.app.Activity
 import android.app.Application
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.Lifecycle
@@ -21,6 +22,8 @@ import com.tencent.mmkv.MMKV
 import com.vkas.easyconnect.ecui.ecmain.MainActivity
 import com.vkas.easyconnect.ecbase.AppManagerEcMVVM
 import com.vkas.easyconnect.ecenevt.Constant
+import com.vkas.easyconnect.ecui.ecstart.StartEcActivity
+import com.vkas.easyconnect.ecutils.ActivityUtils
 import com.vkas.easyconnect.ecutils.CalendarUtils
 import com.vkas.easyconnect.ecutils.EcTimerThread.sendTimerInformation
 import com.vkas.easyconnect.ecutils.KLog
@@ -108,7 +111,7 @@ class App : Application(), LifecycleObserver {
             delay(3000L)
             whetherBackgroundEc = true
             ad_activity_ec?.finish()
-//            ActivityUtils.getActivity(StartActivity::class.java)?.finish()
+            ActivityUtils.getActivity(StartEcActivity::class.java)?.finish()
         }
     }
     /**
@@ -116,9 +119,9 @@ class App : Application(), LifecycleObserver {
      */
     private fun jumpGuidePage(){
         whetherBackgroundEc = false
-//        val intent = Intent(top_activity_ec, StartActivity::class.java)
-//        intent.putExtra(Constant.RETURN_EC_CURRENT_PAGE, true)
-//        top_activity_ec?.startActivity(intent)
+        val intent = Intent(top_activity_ec, StartEcActivity::class.java)
+        intent.putExtra(Constant.RETURN_EC_CURRENT_PAGE, true)
+        top_activity_ec?.startActivity(intent)
     }
     fun setActivityLifecycleEc(application: Application) {
         //注册监听每个activity的生命周期,便于堆栈式管理

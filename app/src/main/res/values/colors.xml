@@ -22,10 +22,13 @@
     <color name="tv_ff_333333">#FF333333</color>
 
     <color name="tv_time_connect">#FF23AB47</color>
+    <color name="tv_time_main_dis">#99000000</color>
+
     <color name="tv_button_dis">#373D60</color>
     <color name="tv_button_connect">#23AB46</color>
 
     <color name="tv_time_dis">#10CF39</color>
     <color name="tv_result_time_connect">#5C333333</color>
+    <color name="guide_mask">#87000000</color>
 
 </resources>

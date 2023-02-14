@@ -26,6 +26,10 @@
             name="sidebarShowsEc"
             type="Boolean"
             android:value="false" />
+        <variable
+            name="homeGuideEc"
+            type="Boolean"
+            android:value="false" />
     </data>
 
     <FrameLayout
@@ -74,7 +78,7 @@
                     android:layout_marginTop="3dp"
                     android:gravity="center"
                     android:text="@string/_00_00_00"
-                    android:textColor="#FF000000"
+                    android:textColor="@color/tv_time_main_dis"
                     android:textSize="26sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -124,6 +128,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_connect"
                     android:gravity="center"
+                    android:visibility="@{homeGuideEc ? View.GONE : View.VISIBLE}"
                     android:onClick="@{() ->presenter.linkService()}"
                     android:text="@string/connect"
                     android:textColor="#FFFFFBF7"
@@ -152,7 +157,7 @@
                 android:paddingEnd="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/cl_switch_ec">
+                app:layout_constraintTop_toBottomOf="@+id/lav_view_gu">
 
                 <ImageView
                     android:id="@+id/img_country"
@@ -199,6 +204,25 @@
                     android:visibility="@{vpnAdEc ? View.GONE : View.VISIBLE}" />
             </FrameLayout>
 
+            <View
+                android:id="@+id/view_guide_mask"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/guide_mask"
+                android:visibility="gone" />
+
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/lav_view_gu"
+                android:layout_width="258dp"
+                android:layout_height="113dp"
+                android:layout_marginTop="-30dp"
+                android:visibility="@{homeGuideEc ? View.VISIBLE : View.GONE}"
+                android:onClick="@{() ->presenter.linkServiceGuide()}"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cl_switch_ec"
+                app:lottie_fileName="data_guide.json"
+                app:lottie_loop="true" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <include

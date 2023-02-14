@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.RemoteException
 import android.view.KeyEvent
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
@@ -168,6 +169,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
         }
         EcLoadHomeAd.getInstance().whetherToShowEc = false
         initHomeAd()
+        showVpnGuide()
     }
 
     private fun initHomeAd() {
@@ -221,16 +223,21 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
 
     inner class EcClick {
         fun linkService() {
-            if (binding.vpnState != 1) {
+            if (binding.vpnState != 1 && !binding.viewGuideMask.isVisible) {
                 connect.launch(null)
             }
 //            if (binding.vpnState == 0) {
 //                UnLimitedUtils.getBuriedPointEc("unlimF_clickv")
 //            }
         }
+        fun linkServiceGuide(){
+            if (binding.vpnState != 1 && binding.viewGuideMask.isVisible) {
+                connect.launch(null)
+            }
+        }
 
         fun clickService() {
-            if (binding.vpnState != 1) {
+            if (binding.vpnState != 1 && !binding.viewGuideMask.isVisible) {
                 jumpToServerList()
             }
         }
@@ -311,6 +318,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
     }
 
     private val connect = registerForActivityResult(StartService()) {
+        binding.homeGuideEc = false
+        binding.viewGuideMask.visibility = View.GONE
         lifecycleScope.launch(Dispatchers.IO) {
             EasyConnectUtils.getIpInformation()
         }
@@ -460,7 +469,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
                 binding.imgConnectionStatus.text = getString(R.string.connect)
                 binding.imgConnectionStatus.setBackgroundResource(R.drawable.bg_connect)
                 binding.txtTimerEc.text = getString(R.string._00_00_00)
-                binding.txtTimerEc.setTextColor(getColor(R.color.tv_time_dis))
+                binding.txtTimerEc.setTextColor(getColor(R.color.tv_time_main_dis))
                 EcTimerThread.endTiming()
                 binding.lavViewEc.pauseAnimation()
                 binding.lavViewEc.visibility = View.GONE
@@ -485,7 +494,20 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
             }
         }
     }
-
+    private fun showVpnGuide() {
+        lifecycleScope.launch {
+            delay(300)
+            if (state.name != "Connected") {
+                binding.homeGuideEc = true
+                binding.viewGuideMask.visibility = View.VISIBLE
+                binding.lavViewGu.playAnimation()
+            } else {
+                binding.homeGuideEc = false
+                binding.viewGuideMask.visibility = View.GONE
+                binding.lavViewGu.pauseAnimation()
+            }
+        }
+    }
     override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
         changeState(state)
     }
@@ -568,7 +590,13 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            finish()
+            if (binding.viewGuideMask.isVisible) {
+                binding.homeGuideEc = false
+                binding.viewGuideMask.visibility = View.GONE
+                binding.lavViewGu.pauseAnimation()
+            } else {
+                finish()
+            }
         }
         return true
     }
