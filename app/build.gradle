@@ -64,6 +64,7 @@ dependencies {
     implementation rootProject.ext.dependencies.material
     implementation rootProject.ext.dependencies.constraintlayout
     implementation rootProject.ext.dependencies.coroutines
+    implementation rootProject.ext.dependencies.coroutinesCore
     implementation rootProject.ext.dependencies.androidUtilCode
     implementation rootProject.ext.dependencies.lottie
     implementation platform(rootProject.ext.dependencies.firebaseBom)

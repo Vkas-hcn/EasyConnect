@@ -1,12 +1,24 @@
 {
-  "ec_show_num": 300,
+  "ec_show_num": 40,
   "ec_click_num": 5,
   "ec_open": [
     {
       "ec_type": "open",
       "ec_platform": "admob",
-      "ec_id": "ca-app-pub-3940256099942544/3419835294",
+      "ec_id": "ca-app-pub-3940256099942544/3419835294XXX",
+      "ec_weight": 3
+    },
+    {
+      "ec_type": "screen",
+      "ec_platform": "admob",
+      "ec_id": "ca-app-pub-3940256099942544/1033173712",
       "ec_weight": 1
+    },
+    {
+      "ec_type": "open",
+      "ec_platform": "admob",
+      "ec_id": "ca-app-pub-3940256099942544/3419835294",
+      "ec_weight": 2
     }
   ],
   "ec_back": [
@@ -14,6 +26,18 @@
       "ec_type": "screen",
       "ec_platform": "admob",
       "ec_id": "ca-app-pub-3940256099942544/8691691433",
+      "ec_weight": 1
+    },
+    {
+      "ec_type": "screen",
+      "ec_platform": "admob",
+      "ec_id": "ca-app-pub-3940256099942544/1033173712XX",
+      "ec_weight": 3
+    },
+    {
+      "ec_type": "screen",
+      "ec_platform": "admob",
+      "ec_id": "ca-app-pub-3940256099942544/1033173712",
       "ec_weight": 2
     }
   ],
@@ -41,8 +65,20 @@
     {
       "ec_type": "primitive",
       "ec_platform": "admob",
-      "ec_id": "ca-app-pub-3940256099942544/2247696110",
+      "ec_id": "ca-app-pub-3940256099942544/1044960115",
       "ec_weight": 2
+    },
+    {
+      "ec_type": "primitive",
+      "ec_platform": "admob",
+      "ec_id": "ca-app-pub-3940256099942544/2247696110XX",
+      "ec_weight": 3
+    },
+    {
+      "ec_type": "primitive",
+      "ec_platform": "admob",
+      "ec_id": "ca-app-pub-3940256099942544/2247696110",
+      "ec_weight": 1
     }
   ],
   "ec_connect": [

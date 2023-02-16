@@ -1,10 +1,6 @@
 package com.vkas.easyconnect.ecutils
 
-import androidx.core.os.bundleOf
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
 import com.google.gson.reflect.TypeToken
-import com.vkas.easyconnect.BuildConfig
 import com.vkas.easyconnect.R
 import com.vkas.easyconnect.ecapp.App.Companion.mmkvEc
 import com.vkas.easyconnect.ecbean.EcAdBean
@@ -19,6 +15,8 @@ import com.xuexiang.xutil.resource.ResourceUtils
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.Charset
+import kotlinx.coroutines.*
+import java.net.InetAddress
 
 object EasyConnectUtils {
     fun getFastIpEc(): EcVpnBean {
@@ -269,6 +267,27 @@ object EasyConnectUtils {
         }
     }
 
+    fun findFastestIP(ips: List<String>): String {
+        var fastestIP = ""
+        var fastestTime = Long.MAX_VALUE
+
+        for (ip in ips) {
+            try {
+                val start = System.currentTimeMillis()
+                val address = InetAddress.getByName(ip)
+                val reachable = address.isReachable(1000)
+                val end = System.currentTimeMillis()
+                if (reachable && end - start < fastestTime) {
+                    fastestIP = ip
+                    fastestTime = end - start
+                }
+            } catch (e: Exception) {
+                continue
+            }
+        }
+
+        return fastestIP
+    }
 
 //    /**
 //     * 埋点
@@ -301,4 +320,5 @@ object EasyConnectUtils {
 //            KLog.d(logTagEc, "触发埋点----name=${name}---time=${time}")
 //        }
 //    }
+
 }

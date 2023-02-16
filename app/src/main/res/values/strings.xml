@@ -22,5 +22,6 @@
 
     <string name="connecteds">Connected！</string>
     <string name="disconnecteds">Disconnected！</string>
+    <string name="check_your_network">Please check your network</string>
 
 </resources>

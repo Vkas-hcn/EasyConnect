@@ -95,7 +95,6 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
         super.initToolbar()
         binding.presenter = EcClick()
         liveEventBusReceive()
-        antiShakingFunction()
         binding.mainTitle.imgBack.setImageResource(R.mipmap.ic_main_menu)
         binding.mainTitle.imgBack.setOnClickListener {
             binding.sidebarShowsEc =true
@@ -134,20 +133,18 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
             .get(Constant.PLUG_EC_ADVERTISEMENT_SHOW, Boolean::class.java)
             .observeForever {
                 KLog.e("state", "插屏关闭接收=${it}")
-                turnOffTouchScreenStatus=it
-                debouncer.debounce()
+                //重复点击
+                jobRepeatClick = lifecycleScope.launch {
+                    if (!repeatClick) {
+                        KLog.e("state", "插屏关闭后跳转=${it}")
+                        AdBase.getConnectInstance().advertisementLoadingEc(this@MainActivity)
+                        connectOrDisconnectEc(it)
+                        repeatClick = true
+                    }
+                    delay(1000)
+                    repeatClick = false
+                }
             }
-    }
-    /**
-     * 防抖函数
-     */
-    private fun antiShakingFunction(){
-        debouncer = Debouncer(1000) {
-            // 在这里执行按钮点击事件的逻辑
-            KLog.e("state", "插屏关闭后跳转=${turnOffTouchScreenStatus}")
-            AdBase.getConnectInstance().advertisementLoadingEc(this@MainActivity)
-            turnOffTouchScreenStatus?.let { it1 -> connectOrDisconnectEc(it1) }
-        }
     }
     override fun initData() {
         super.initData()
@@ -341,7 +338,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
             if (isNetworkAvailable()) {
                 startVpn()
             } else {
-                ToastUtils.toast("Please check your network",3000)
+                ToastUtils.toast(getString(R.string.check_your_network),3000)
             }
         }
     }

@@ -24,6 +24,7 @@ import com.vkas.easyconnect.ecenevt.Constant
 import com.vkas.easyconnect.ecenevt.Constant.logTagEc
 import com.vkas.easyconnect.ecui.ecmain.MainActivity
 import com.vkas.easyconnect.ecutils.EasyConnectUtils
+import com.vkas.easyconnect.ecutils.EasyConnectUtils.findFastestIP
 import com.vkas.easyconnect.ecutils.EasyConnectUtils.isThresholdReached
 import com.vkas.easyconnect.ecutils.KLog
 import com.vkas.easyconnect.ecutils.MmkvUtils
@@ -61,7 +62,7 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
     override fun initData() {
         super.initData()
         binding.pbStartEc.setProgressViewUpdateListener(this)
-        binding.pbStartEc.setProgressDuration(2000)
+        binding.pbStartEc.setProgressDuration(10000)
         binding.pbStartEc.startProgressAnimation()
         liveEventBusEc()
         lifecycleScope.launch(Dispatchers.IO) {
@@ -86,8 +87,14 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
         if (BuildConfig.DEBUG) {
             preloadedAdvertisement()
 //            lifecycleScope.launch {
+//                val ips = listOf("192.168.0.1", "8.8.8.8", "114.114.114.114")
+//                val fastestIP = findFastestIP(ips)
+//                KLog.e("TAG", "Fastest IP: $fastestIP")
 //                delay(1500)
-//                MmkvUtils.set(Constant.ADVERTISING_EC_DATA, ResourceUtils.readStringFromAssert("elAdDataFireBase.json"))
+//                MmkvUtils.set(
+//                    Constant.ADVERTISING_EC_DATA,
+//                    ResourceUtils.readStringFromAssert("elAdDataFireBase.json")
+//                )
 //            }
             return
         } else {
@@ -162,7 +169,7 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
     private fun rotationDisplayOpeningAdEc() {
         jobOpenAdsEc = lifecycleScope.launch {
             try {
-                withTimeout(8000L) {
+                withTimeout(10000L) {
                     delay(1000L)
                     while (isActive) {
                         val showState = EcLoadOpenAd
