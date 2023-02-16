@@ -17,6 +17,7 @@ import com.vkas.easyconnect.ecbase.BaseViewModel
 import com.vkas.easyconnect.ecbean.EcIpBean
 import com.vkas.easyconnect.ecbean.EcVpnBean
 import com.vkas.easyconnect.ecenevt.Constant
+import com.vkas.easyconnect.ecutils.Debouncer
 import com.vkas.easyconnect.ecutils.EasyConnectUtils
 import com.vkas.easyconnect.ecutils.KLog
 import com.vkas.easyconnect.ecutils.MmkvUtils

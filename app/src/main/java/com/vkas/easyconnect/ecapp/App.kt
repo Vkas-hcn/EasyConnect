@@ -14,11 +14,11 @@ import com.github.shadowsocks.Core
 import com.google.android.gms.ads.AdActivity
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.FirebaseApp
-import com.google.firebase.abt.BuildConfig
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.tencent.mmkv.MMKV
+import com.vkas.easyconnect.BuildConfig
 import com.vkas.easyconnect.ecui.ecmain.MainActivity
 import com.vkas.easyconnect.ecbase.AppManagerEcMVVM
 import com.vkas.easyconnect.ecenevt.Constant

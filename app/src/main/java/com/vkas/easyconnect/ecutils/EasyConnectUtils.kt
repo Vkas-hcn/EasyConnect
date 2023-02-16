@@ -21,24 +21,6 @@ import java.net.URL
 import java.nio.charset.Charset
 
 object EasyConnectUtils {
-    /**
-     * 获取Fast ip
-     */
-    fun getFastIpEc2(): EcVpnBean {
-        val ufVpnBean: MutableList<EcVpnBean> = getLocalServerData()
-        var intersectionList = findFastAndOrdinaryIntersection(ufVpnBean)
-        if (intersectionList.size <= 0) {
-            intersectionList = ufVpnBean
-        }
-
-        intersectionList.shuffled().take(1).forEach {
-            it.ec_best = true
-            it.ec_country = getString(R.string.fast_service)
-            return it
-        }
-        intersectionList[0].ec_best = true
-        return intersectionList[0]
-    }
     fun getFastIpEc(): EcVpnBean {
         val ufVpnBean: MutableList<EcVpnBean> = getLocalServerData()
         val intersectionList = findFastAndOrdinaryIntersection(ufVpnBean).takeIf { it.isNotEmpty() } ?: ufVpnBean
@@ -80,14 +62,11 @@ object EasyConnectUtils {
             )
         }
     }
-    /**
-     *
-     */
 
     /**
      * 找出fast与普通交集
      */
-    private fun findFastAndOrdinaryIntersection(ufVpnBeans: MutableList<EcVpnBean>): MutableList<EcVpnBean> {
+    private fun findFastAndOrdinaryIntersection2(ufVpnBeans: MutableList<EcVpnBean>): MutableList<EcVpnBean> {
         val intersectionList: MutableList<EcVpnBean> = ArrayList()
         getLocalFastServerData().forEach { fast ->
             ufVpnBeans.forEach { skServiceBean ->
@@ -98,30 +77,32 @@ object EasyConnectUtils {
         }
         return intersectionList
     }
+    private fun findFastAndOrdinaryIntersection(ufVpnBeans: MutableList<EcVpnBean>): MutableList<EcVpnBean> {
+        val intersectionList: MutableList<EcVpnBean> = mutableListOf()
+        val fastServerData = getLocalFastServerData()
+        intersectionList.addAll(ufVpnBeans.filter { fastServerData.contains(it.ec_ip) })
+        return intersectionList
+    }
 
     /**
      * 广告排序
      */
     private fun adSortingEc(elAdBean: EcAdBean): EcAdBean {
-        val adBean: EcAdBean = EcAdBean()
-        val elOpen = elAdBean.ec_open.sortedWith(compareByDescending { it.ec_weight })
-        val elBack = elAdBean.ec_back.sortedWith(compareByDescending { it.ec_weight })
-
-        val ufVpn = elAdBean.ec_vpn.sortedWith(compareByDescending { it.ec_weight })
-        val elResult = elAdBean.ec_result.sortedWith(compareByDescending { it.ec_weight })
-        val elConnect = elAdBean.ec_connect.sortedWith(compareByDescending { it.ec_weight })
-
-
-        adBean.ec_open = elOpen.toMutableList()
-        adBean.ec_back = elBack.toMutableList()
-
-        adBean.ec_vpn = ufVpn.toMutableList()
-        adBean.ec_result = elResult.toMutableList()
-        adBean.ec_connect = elConnect.toMutableList()
-
+        val adBean = EcAdBean()
+        adBean.ec_open = sortByWeightDescending(elAdBean.ec_open) { it.ec_weight }.toMutableList()
+        adBean.ec_back = sortByWeightDescending(elAdBean.ec_back) { it.ec_weight }.toMutableList()
+        adBean.ec_vpn = sortByWeightDescending(elAdBean.ec_vpn) { it.ec_weight }.toMutableList()
+        adBean.ec_result = sortByWeightDescending(elAdBean.ec_result) { it.ec_weight }.toMutableList()
+        adBean.ec_connect = sortByWeightDescending(elAdBean.ec_connect) { it.ec_weight }.toMutableList()
         adBean.ec_show_num = elAdBean.ec_show_num
         adBean.ec_click_num = elAdBean.ec_click_num
         return adBean
+    }
+    /**
+     * 根据权重降序排序并返回新的列表
+     */
+    private fun <T> sortByWeightDescending(list: List<T>, getWeight: (T) -> Int): List<T> {
+        return list.sortedByDescending(getWeight)
     }
 
     /**
@@ -287,6 +268,7 @@ object EasyConnectUtils {
             KLog.e("state", "Exception==${var1.message}")
         }
     }
+
 
 //    /**
 //     * 埋点

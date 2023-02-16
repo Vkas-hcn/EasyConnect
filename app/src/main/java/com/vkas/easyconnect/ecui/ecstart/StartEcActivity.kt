@@ -2,6 +2,7 @@ package com.vkas.easyconnect.ecui.ecstart
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import androidx.lifecycle.Lifecycle
@@ -16,6 +17,7 @@ import com.vkas.easyconnect.R
 import com.vkas.easyconnect.databinding.ActivityStartBinding
 import com.vkas.easyconnect.ecad.*
 import com.vkas.easyconnect.ecapp.App
+import com.vkas.easyconnect.ecbase.AdBase
 import com.vkas.easyconnect.ecbase.BaseActivity
 import com.vkas.easyconnect.ecbase.BaseViewModel
 import com.vkas.easyconnect.ecenevt.Constant
@@ -29,10 +31,11 @@ import com.xuexiang.xui.widget.progress.HorizontalProgressView
 import kotlinx.coroutines.*
 
 class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
-    HorizontalProgressView.HorizontalProgressUpdateListener  {
+    HorizontalProgressView.HorizontalProgressUpdateListener {
     companion object {
         var isCurrentPage: Boolean = false
     }
+
     private var liveJumpHomePage = MutableLiveData<Boolean>()
     private var liveJumpHomePage2 = MutableLiveData<Boolean>()
     private var jobOpenAdsEc: Job? = null
@@ -44,11 +47,13 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
     override fun initVariableId(): Int {
         return BR._all
     }
+
     override fun initParam() {
         super.initParam()
         isCurrentPage = intent.getBooleanExtra(Constant.RETURN_EC_CURRENT_PAGE, false)
 
     }
+
     override fun initToolbar() {
         super.initToolbar()
     }
@@ -65,6 +70,7 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
         getFirebaseDataEc()
         jumpHomePageData()
     }
+
     private fun liveEventBusEc() {
         LiveEventBus
             .get(Constant.OPEN_CLOSE_JUMP, Boolean::class.java)
@@ -126,29 +132,30 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
             startActivity(intent)
         }
         finish()
-
     }
+
     /**
      * 加载广告
      */
     private fun loadAdvertisement() {
         // 开屏
-        EcLoadOpenAd.getInstance().adIndexEc = 0
-        EcLoadOpenAd.getInstance().advertisementLoadingEc(this)
+        AdBase.getOpenInstance().adIndexEc = 0
+        AdBase.getOpenInstance().advertisementLoadingEc(this)
         rotationDisplayOpeningAdEc()
         // 首页原生
-        EcLoadHomeAd.getInstance().adIndexEc = 0
-        EcLoadHomeAd.getInstance().advertisementLoadingEc(this)
+        AdBase.getHomeInstance().adIndexEc = 0
+        AdBase.getHomeInstance().advertisementLoadingEc(this)
         // 结果页原生
-        EcLoadResultAd.getInstance().adIndexEc = 0
-        EcLoadResultAd.getInstance().advertisementLoadingEc(this)
+        AdBase.getResultInstance().adIndexEc = 0
+        AdBase.getResultInstance().advertisementLoadingEc(this)
         // 连接插屏
-        EcLoadConnectAd.getInstance().adIndexEc = 0
-        EcLoadConnectAd.getInstance().advertisementLoadingEc(this)
+        AdBase.getConnectInstance().adIndexEc = 0
+        AdBase.getConnectInstance().advertisementLoadingEc(this)
         // 服务器页插屏
-        EcLoadBackAd.getInstance().adIndexEc = 0
-        EcLoadBackAd.getInstance().advertisementLoadingEc(this)
+        AdBase.getBackInstance().adIndexEc = 0
+        AdBase.getBackInstance().advertisementLoadingEc(this)
     }
+
     /**
      * 轮训展示开屏广告
      */
@@ -158,11 +165,11 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
                 withTimeout(8000L) {
                     delay(1000L)
                     while (isActive) {
-                        val showState = EcLoadOpenAd.getInstance()
+                        val showState = EcLoadOpenAd
                             .displayOpenAdvertisementEc(this@StartEcActivity)
                         if (showState) {
                             jobOpenAdsEc?.cancel()
-                            jobOpenAdsEc =null
+                            jobOpenAdsEc = null
                         }
                         delay(1000L)
                     }
@@ -173,6 +180,7 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
             }
         }
     }
+
     /**
      * 预加载广告
      */
@@ -188,6 +196,7 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
             loadAdvertisement()
         }
     }
+
     override fun onHorizontalProgressStart(view: View?) {
     }
 
@@ -196,6 +205,7 @@ class StartEcActivity : BaseActivity<ActivityStartBinding, BaseViewModel>(),
 
     override fun onHorizontalProgressFinished(view: View?) {
     }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return keyCode == KeyEvent.KEYCODE_BACK
     }

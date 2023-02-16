@@ -31,6 +31,7 @@ import com.vkas.easyconnect.ecad.EcLoadHomeAd
 import com.vkas.easyconnect.ecad.EcLoadResultAd
 import com.vkas.easyconnect.ecapp.App
 import com.vkas.easyconnect.ecapp.App.Companion.mmkvEc
+import com.vkas.easyconnect.ecbase.AdBase
 import com.vkas.easyconnect.ecbase.BaseActivity
 import com.vkas.easyconnect.ecbean.EcVpnBean
 import com.vkas.easyconnect.ecenevt.Constant
@@ -38,12 +39,9 @@ import com.vkas.easyconnect.ecenevt.Constant.logTagEc
 import com.vkas.easyconnect.ecui.ecresult.ResultEcActivity
 import com.vkas.easyconnect.ecui.ecservice.ServiceListEcActivity
 import com.vkas.easyconnect.ecui.ecweb.WebEcActivity
-import com.vkas.easyconnect.ecutils.EasyConnectUtils
+import com.vkas.easyconnect.ecutils.*
 import com.vkas.easyconnect.ecutils.EasyConnectUtils.getFlagThroughCountryEc
 import com.vkas.easyconnect.ecutils.EasyConnectUtils.isThresholdReached
-import com.vkas.easyconnect.ecutils.EcTimerThread
-import com.vkas.easyconnect.ecutils.KLog
-import com.vkas.easyconnect.ecutils.MmkvUtils
 import com.xuexiang.xui.utils.Utils
 import com.xuexiang.xutil.net.JsonUtil
 import com.xuexiang.xutil.net.JsonUtil.toJson
@@ -68,7 +66,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
     var whetherRefreshServer = false
     private var jobNativeAdsEc: Job? = null
     private var jobStartEc: Job? = null
-
+    private lateinit var debouncer:Debouncer
+    //关闭插屏状态
+    private var turnOffTouchScreenStatus:Boolean?=null
     //当前执行连接操作
     private var performConnectionOperations: Boolean = false
 
@@ -95,6 +95,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
         super.initToolbar()
         binding.presenter = EcClick()
         liveEventBusReceive()
+        antiShakingFunction()
         binding.mainTitle.imgBack.setImageResource(R.mipmap.ic_main_menu)
         binding.mainTitle.imgBack.setOnClickListener {
             binding.sidebarShowsEc =true
@@ -133,50 +134,60 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
             .get(Constant.PLUG_EC_ADVERTISEMENT_SHOW, Boolean::class.java)
             .observeForever {
                 KLog.e("state", "插屏关闭接收=${it}")
-
-                //重复点击
-                jobRepeatClick = lifecycleScope.launch {
-                    if (!repeatClick) {
-                        KLog.e("state", "插屏关闭后跳转=${it}")
-                        EcLoadConnectAd.getInstance().advertisementLoadingEc(this@MainActivity)
-                        connectOrDisconnectEc(it)
-                        repeatClick = true
-                    }
-                    delay(1000)
-                    repeatClick = false
-                }
+                turnOffTouchScreenStatus=it
+                debouncer.debounce()
             }
     }
-
+    /**
+     * 防抖函数
+     */
+    private fun antiShakingFunction(){
+        debouncer = Debouncer(1000) {
+            // 在这里执行按钮点击事件的逻辑
+            KLog.e("state", "插屏关闭后跳转=${turnOffTouchScreenStatus}")
+            AdBase.getConnectInstance().advertisementLoadingEc(this@MainActivity)
+            turnOffTouchScreenStatus?.let { it1 -> connectOrDisconnectEc(it1) }
+        }
+    }
     override fun initData() {
         super.initData()
         if (viewModel.whetherParsingIsIllegalIp()) {
             viewModel.whetherTheBulletBoxCannotBeUsed(this@MainActivity)
             return
         }
+
+        // 设置状态
         changeState(BaseService.State.Idle, animate = false)
+
+        // 连接服务
         connection.connect(this, this)
+
+        // 注册数据改变监听
         DataStore.publicStore.registerChangeListener(this)
+
+        // 初始化服务数据
         if (EcTimerThread.isStopThread) {
             viewModel.initializeServerData()
         } else {
             val serviceData = mmkvEc.decodeString("currentServerData", "").toString()
-            val currentServerData: EcVpnBean = JsonUtil.fromJson(
-                serviceData,
-                object : TypeToken<EcVpnBean?>() {}.type
-            )
+            val currentServerData: EcVpnBean = JsonUtil.fromJson(serviceData, object : TypeToken<EcVpnBean?>() {}.type)
             setFastInformation(currentServerData)
         }
-        EcLoadHomeAd.getInstance().whetherToShowEc = false
+
+        AdBase.getHomeInstance().whetherToShowEc = false
+
+        // 初始化主页广告
         initHomeAd()
+
+        // 显示VPN指南
         showVpnGuide()
     }
 
     private fun initHomeAd() {
         jobNativeAdsEc = lifecycleScope.launch {
             while (isActive) {
-                EcLoadHomeAd.getInstance().setDisplayHomeNativeAdEc(this@MainActivity, binding)
-                if (EcLoadHomeAd.getInstance().whetherToShowEc) {
+                EcLoadHomeAd.setDisplayHomeNativeAdEc(this@MainActivity, binding)
+                if (AdBase.getHomeInstance().whetherToShowEc) {
                     jobNativeAdsEc?.cancel()
                     jobNativeAdsEc = null
                 }
@@ -297,7 +308,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
             } else {
                 bundle.putBoolean(Constant.WHETHER_EC_CONNECTED, false)
             }
-            EcLoadBackAd.getInstance().advertisementLoadingEc(this@MainActivity)
+            AdBase.getBackInstance().advertisementLoadingEc(this@MainActivity)
             val serviceData = mmkvEc.decodeString("currentServerData", "").toString()
             bundle.putString(Constant.CURRENT_EC_SERVICE, serviceData)
             startActivity(ServiceListEcActivity::class.java, bundle)
@@ -344,14 +355,14 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
         changeOfVpnStatus()
         jobStartEc = lifecycleScope.launch {
             App.isAppOpenSameDayEc()
-            if (isThresholdReached() || Utils.isNullOrEmpty(EcLoadConnectAd.getInstance().idEc)) {
+            if (isThresholdReached() || Utils.isNullOrEmpty(EcLoadConnectAd.idEc)) {
                 KLog.d(logTagEc, "广告达到上线,或者无广告位")
                 delay(1500)
                 connectOrDisconnectEc(false)
                 return@launch
             }
-            EcLoadConnectAd.getInstance().advertisementLoadingEc(this@MainActivity)
-            EcLoadResultAd.getInstance().advertisementLoadingEc(this@MainActivity)
+            AdBase.getConnectInstance().advertisementLoadingEc(this@MainActivity)
+            AdBase.getResultInstance().advertisementLoadingEc(this@MainActivity)
 
             try {
                 withTimeout(10000L) {
@@ -359,7 +370,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
                     KLog.e(logTagEc, "jobStartEc?.isActive=${jobStartEc?.isActive}")
                     while (jobStartEc?.isActive == true) {
                         val showState =
-                            EcLoadConnectAd.getInstance()
+                            EcLoadConnectAd
                                 .displayConnectAdvertisementEc(this@MainActivity)
                         if (showState) {
                             jobStartEc?.cancel()
@@ -544,14 +555,14 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(),
                 return@launch
             }
             if (App.nativeAdRefreshEc) {
-                EcLoadHomeAd.getInstance().whetherToShowEc = false
-                if (EcLoadHomeAd.getInstance().appAdDataEc != null) {
+                AdBase.getHomeInstance().whetherToShowEc = false
+                if (AdBase.getHomeInstance().appAdDataEc != null) {
                     KLog.d(logTagEc, "onResume------>1")
-                    EcLoadHomeAd.getInstance().setDisplayHomeNativeAdEc(this@MainActivity, binding)
+                    EcLoadHomeAd.setDisplayHomeNativeAdEc(this@MainActivity, binding)
                 } else {
                     binding.vpnAdEc = false
                     KLog.d(logTagEc, "onResume------>2")
-                    EcLoadHomeAd.getInstance().advertisementLoadingEc(this@MainActivity)
+                    AdBase.getHomeInstance().advertisementLoadingEc(this@MainActivity)
                     initHomeAd()
                 }
             }

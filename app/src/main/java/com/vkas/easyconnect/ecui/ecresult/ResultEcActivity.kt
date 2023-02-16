@@ -11,6 +11,7 @@ import com.vkas.easyconnect.databinding.ActivityResultEcBinding
 import com.vkas.easyconnect.ecad.EcLoadResultAd
 import com.vkas.easyconnect.ecapp.App
 import com.vkas.easyconnect.ecapp.App.Companion.mmkvEc
+import com.vkas.easyconnect.ecbase.AdBase
 import com.vkas.easyconnect.ecbase.BaseActivity
 import com.vkas.easyconnect.ecbase.BaseViewModel
 import com.vkas.easyconnect.ecbean.EcVpnBean
@@ -83,7 +84,7 @@ class ResultEcActivity : BaseActivity<ActivityResultEcBinding, BaseViewModel>() 
         }
         binding.imgCountry.setImageResource(EasyConnectUtils.getFlagThroughCountryEc(currentServerBeanEc.ec_country.toString()))
         binding.txtCountry.text = currentServerBeanEc.ec_country.toString()
-        EcLoadResultAd.getInstance().whetherToShowEc =false
+        AdBase.getResultInstance().whetherToShowEc =false
         initResultAds()
     }
 
@@ -94,8 +95,8 @@ class ResultEcActivity : BaseActivity<ActivityResultEcBinding, BaseViewModel>() 
     private fun initResultAds() {
         jobResultEc= lifecycleScope.launch {
             while (isActive) {
-                EcLoadResultAd.getInstance().setDisplayResultNativeAd(this@ResultEcActivity,binding)
-                if (EcLoadResultAd.getInstance().whetherToShowEc) {
+                EcLoadResultAd.setDisplayResultNativeAd(this@ResultEcActivity,binding)
+                if (AdBase.getResultInstance().whetherToShowEc) {
                     jobResultEc?.cancel()
                     jobResultEc = null
                 }
@@ -110,11 +111,11 @@ class ResultEcActivity : BaseActivity<ActivityResultEcBinding, BaseViewModel>() 
             delay(300)
             if(lifecycle.currentState != Lifecycle.State.RESUMED){return@launch}
             if(App.nativeAdRefreshEc){
-                EcLoadResultAd.getInstance().whetherToShowEc =false
-                if(EcLoadResultAd.getInstance().appAdDataEc !=null){
-                    EcLoadResultAd.getInstance().setDisplayResultNativeAd(this@ResultEcActivity,binding)
+                AdBase.getResultInstance().whetherToShowEc =false
+                if(AdBase.getResultInstance().appAdDataEc !=null){
+                    EcLoadResultAd.setDisplayResultNativeAd(this@ResultEcActivity,binding)
                 }else{
-                    EcLoadResultAd.getInstance().advertisementLoadingEc(this@ResultEcActivity)
+                    AdBase.getResultInstance().advertisementLoadingEc(this@ResultEcActivity)
                     initResultAds()
                 }
             }

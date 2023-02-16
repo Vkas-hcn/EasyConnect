@@ -12,6 +12,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.vkas.easyconnect.ecapp.App
+import com.vkas.easyconnect.ecbase.AdBase
 import com.vkas.easyconnect.ecbean.EcAdBean
 import com.vkas.easyconnect.ecenevt.Constant
 import com.vkas.easyconnect.ecenevt.Constant.logTagEc
@@ -25,78 +26,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
 
-class EcLoadConnectAd {
-    companion object {
-        fun getInstance() = InstanceHelper.openLoadEc
-    }
-
-    object InstanceHelper {
-        val openLoadEc = EcLoadConnectAd()
-    }
-
-    var appAdDataEc: InterstitialAd? = null
-
-    // 是否正在加载中
-    var isLoadingEc = false
-
-    //加载时间
-    private var loadTimeEc: Long = Date().time
-
-    // 是否展示
-    var whetherToShowEc = false
-
-    // openIndex
-    var adIndexEc = 0
+object EcLoadConnectAd {
+    private val adBase = AdBase.getConnectInstance()
 
     // 广告ID
     var idEc = ""
-
-    /**
-     * 广告加载前判断
-     */
-    fun advertisementLoadingEc(context: Context) {
-        App.isAppOpenSameDayEc()
-        if (EasyConnectUtils.isThresholdReached()) {
-            KLog.d(logTagEc, "广告达到上线")
-            return
-        }
-        KLog.d(logTagEc, "connect--isLoading=${isLoadingEc}")
-
-        if (isLoadingEc) {
-            KLog.d(logTagEc, "connect--广告加载中，不能再次加载")
-            return
-        }
-
-        if (appAdDataEc == null) {
-            isLoadingEc = true
-            loadConnectAdvertisementEc(context, getAdServerDataEc())
-        }
-        if (appAdDataEc != null && !whetherAdExceedsOneHour(loadTimeEc)) {
-            isLoadingEc = true
-            appAdDataEc = null
-            loadConnectAdvertisementEc(context, getAdServerDataEc())
-        }
-    }
-
-    /**
-     * 广告是否超过过期（false:过期；true：未过期）
-     */
-    private fun whetherAdExceedsOneHour(loadTime: Long): Boolean {
-        val dateDifference: Long = Date().time - loadTime
-        val numMilliSecondsPerHour: Long = 3600000
-        return dateDifference < numMilliSecondsPerHour
-    }
 
 
     /**
      * 加载首页插屏广告
      */
-    private fun loadConnectAdvertisementEc(context: Context, adData: EcAdBean) {
+     fun loadConnectAdvertisementEc(context: Context, adData: EcAdBean) {
         val adRequest = AdRequest.Builder().build()
-        idEc = takeSortedAdIDEc(adIndexEc, adData.ec_connect)
+        idEc = takeSortedAdIDEc(adBase.adIndexEc, adData.ec_connect)
         KLog.d(
             logTagEc,
-            "connect--插屏广告id=$idEc;权重=${adData.ec_connect.getOrNull(adIndexEc)?.ec_weight}"
+            "connect--插屏广告id=$idEc;权重=${adData.ec_connect.getOrNull(adBase.adIndexEc)?.ec_weight}"
         )
 
         InterstitialAd.load(
@@ -106,21 +51,21 @@ class EcLoadConnectAd {
             object : InterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {
                     adError.toString().let { KLog.d(logTagEc, "connect---连接插屏加载失败=$it") }
-                    isLoadingEc = false
-                    appAdDataEc = null
-                    if (adIndexEc < adData.ec_connect.size - 1) {
-                        adIndexEc++
+                    adBase.isLoadingEc = false
+                    adBase.appAdDataEc = null
+                    if (adBase.adIndexEc < adData.ec_connect.size - 1) {
+                        adBase.adIndexEc++
                         loadConnectAdvertisementEc(context, adData)
                     } else {
-                        adIndexEc = 0
+                        adBase.adIndexEc = 0
                     }
                 }
 
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                    loadTimeEc = Date().time
-                    isLoadingEc = false
-                    appAdDataEc = interstitialAd
-                    adIndexEc = 0
+                    adBase.loadTimeEc = Date().time
+                    adBase.isLoadingEc = false
+                    adBase.appAdDataEc = interstitialAd
+                    adBase.adIndexEc = 0
                     KLog.d(logTagEc, "connect---连接插屏加载成功")
                 }
             })
@@ -130,7 +75,7 @@ class EcLoadConnectAd {
      * connect插屏广告回调
      */
     private fun connectScreenAdCallback() {
-        appAdDataEc?.fullScreenContentCallback =
+        (adBase.appAdDataEc as? InterstitialAd)?.fullScreenContentCallback =
             object : FullScreenContentCallback() {
                 override fun onAdClicked() {
                     // Called when a click is recorded for an ad.
@@ -144,15 +89,15 @@ class EcLoadConnectAd {
                     LiveEventBus.get<Boolean>(Constant.PLUG_EC_ADVERTISEMENT_SHOW)
                         .post(App.isBackDataEc)
 
-                    appAdDataEc = null
-                    whetherToShowEc = false
+                    adBase.appAdDataEc = null
+                    adBase.whetherToShowEc = false
                 }
 
                 override fun onAdFailedToShowFullScreenContent(p0: AdError) {
                     // Called when ad fails to show.
                     KLog.d(logTagEc, "Ad failed to show fullscreen content.")
-                    appAdDataEc = null
-                    whetherToShowEc = false
+                    adBase.appAdDataEc = null
+                    adBase.whetherToShowEc = false
                 }
 
                 override fun onAdImpression() {
@@ -161,10 +106,10 @@ class EcLoadConnectAd {
                 }
 
                 override fun onAdShowedFullScreenContent() {
-                    appAdDataEc = null
+                    adBase.appAdDataEc = null
                     recordNumberOfAdDisplaysEc()
                     // Called when ad is shown.
-                    whetherToShowEc = true
+                    adBase.whetherToShowEc = true
                     KLog.d(logTagEc, "connect----show")
                 }
             }
@@ -174,18 +119,18 @@ class EcLoadConnectAd {
      * 展示Connect广告
      */
     fun displayConnectAdvertisementEc(activity: AppCompatActivity): Boolean {
-        if (appAdDataEc == null) {
+        if (adBase.appAdDataEc == null) {
             KLog.d(logTagEc, "connect--插屏广告加载中。。。")
             return false
         }
 
-        if (whetherToShowEc || activity.lifecycle.currentState != Lifecycle.State.RESUMED) {
+        if (adBase.whetherToShowEc || activity.lifecycle.currentState != Lifecycle.State.RESUMED) {
             KLog.d(logTagEc, "connect--前一个插屏广告展示中或者生命周期不对")
             return false
         }
         connectScreenAdCallback()
         activity.lifecycleScope.launch(Dispatchers.Main) {
-            (appAdDataEc as InterstitialAd).show(activity)
+            (adBase.appAdDataEc as InterstitialAd).show(activity)
         }
         return true
     }

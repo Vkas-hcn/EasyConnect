@@ -13,6 +13,7 @@ import com.google.android.gms.ads.nativead.NativeAdView
 import com.vkas.easyconnect.R
 import com.vkas.easyconnect.databinding.ActivityResultEcBinding
 import com.vkas.easyconnect.ecapp.App
+import com.vkas.easyconnect.ecbase.AdBase
 import com.vkas.easyconnect.ecbean.EcAdBean
 import com.vkas.easyconnect.ecenevt.Constant.logTagEc
 import com.vkas.easyconnect.ecutils.EasyConnectUtils
@@ -21,75 +22,20 @@ import com.vkas.easyconnect.ecutils.EasyConnectUtils.recordNumberOfAdClickEc
 import com.vkas.easyconnect.ecutils.EasyConnectUtils.recordNumberOfAdDisplaysEc
 import com.vkas.easyconnect.ecutils.EasyConnectUtils.takeSortedAdIDEc
 import com.vkas.easyconnect.ecutils.KLog
+import com.vkas.easyconnect.ecutils.RoundCornerOutlineProvider
 import java.util.*
 
-class EcLoadResultAd {
-    companion object {
-        fun getInstance() = InstanceHelper.openLoadEc
-    }
-
-    object InstanceHelper {
-        val openLoadEc = EcLoadResultAd()
-    }
-
-    var appAdDataEc: NativeAd? = null
-
-    // 是否正在加载中
-    var isLoadingEc = false
-
-    //加载时间
-    private var loadTimeEc: Long = Date().time
-
-    // 是否展示
-    var whetherToShowEc = false
-
-    // openIndex
-    var adIndexEc = 0
-
-
-    /**
-     * 广告加载前判断
-     */
-    fun advertisementLoadingEc(context: Context) {
-        App.isAppOpenSameDayEc()
-        if (EasyConnectUtils.isThresholdReached()) {
-            KLog.d(logTagEc, "广告达到上线")
-            return
-        }
-        KLog.d(logTagEc, "result--isLoading=${isLoadingEc}")
-
-        if (isLoadingEc) {
-            KLog.d(logTagEc, "result--广告加载中，不能再次加载")
-            return
-        }
-        if (appAdDataEc == null) {
-            isLoadingEc = true
-            loadResultAdvertisementEc(context, getAdServerDataEc())
-        }
-        if (appAdDataEc != null && !whetherAdExceedsOneHour(loadTimeEc)) {
-            isLoadingEc = true
-            appAdDataEc = null
-            loadResultAdvertisementEc(context, getAdServerDataEc())
-        }
-    }
-
-    /**
-     * 广告是否超过过期（false:过期；true：未过期）
-     */
-    private fun whetherAdExceedsOneHour(loadTime: Long): Boolean {
-        val dateDifference: Long = Date().time - loadTime
-        val numMilliSecondsPerHour: Long = 3600000
-        return dateDifference < numMilliSecondsPerHour
-    }
+object EcLoadResultAd {
+    private val adBase = AdBase.getResultInstance()
 
     /**
      * 加载result原生广告
      */
-    private fun loadResultAdvertisementEc(context: Context, adData: EcAdBean) {
-        val id = takeSortedAdIDEc(adIndexEc, adData.ec_result)
+    fun loadResultAdvertisementEc(context: Context, adData: EcAdBean) {
+        val id = takeSortedAdIDEc(adBase.adIndexEc, adData.ec_result)
         KLog.d(
             logTagEc,
-            "result---原生广告id=$id;权重=${adData.ec_result.getOrNull(adIndexEc)?.ec_weight}"
+            "result---原生广告id=$id;权重=${adData.ec_result.getOrNull(adBase.adIndexEc)?.ec_weight}"
         )
 
         val homeNativeAds = AdLoader.Builder(
@@ -108,7 +54,7 @@ class EcLoadResultAd {
 
         homeNativeAds.withNativeAdOptions(adOelions)
         homeNativeAds.forNativeAd {
-            appAdDataEc = it
+            adBase.appAdDataEc = it
         }
         homeNativeAds.withAdListener(object : AdListener() {
             override fun onAdFailedToLoad(loadAdError: LoadAdError) {
@@ -117,24 +63,24 @@ class EcLoadResultAd {
                     """
            domain: ${loadAdError.domain}, code: ${loadAdError.code}, message: ${loadAdError.message}
           """"
-                isLoadingEc = false
-                appAdDataEc = null
+                adBase.isLoadingEc = false
+                adBase.appAdDataEc = null
                 KLog.d(logTagEc, "result---加载result原生加载失败: $error")
 
-                if (adIndexEc < adData.ec_result.size - 1) {
-                    adIndexEc++
+                if (adBase.adIndexEc < adData.ec_result.size - 1) {
+                    adBase.adIndexEc++
                     loadResultAdvertisementEc(context, adData)
                 } else {
-                    adIndexEc = 0
+                    adBase.adIndexEc = 0
                 }
             }
 
             override fun onAdLoaded() {
                 super.onAdLoaded()
                 KLog.d(logTagEc, "result---加载result原生广告成功")
-                loadTimeEc = Date().time
-                isLoadingEc = false
-                adIndexEc = 0
+                adBase.loadTimeEc = Date().time
+                adBase.isLoadingEc = false
+                adBase.adIndexEc = 0
             }
 
             override fun onAdOpened() {
@@ -150,30 +96,30 @@ class EcLoadResultAd {
      */
     fun setDisplayResultNativeAd(activity: AppCompatActivity, binding: ActivityResultEcBinding) {
         activity.runOnUiThread {
-            appAdDataEc.let {
-                if (it != null && !whetherToShowEc && activity.lifecycle.currentState == Lifecycle.State.RESUMED) {
-                    val activityDestroyed: Boolean = activity.isDestroyed
-                    if (activityDestroyed || activity.isFinishing || activity.isChangingConfigurations) {
-                        it.destroy()
+            adBase.appAdDataEc?.let { adData ->
+                if (adData is NativeAd &&!adBase.whetherToShowEc && activity.lifecycle.currentState == Lifecycle.State.RESUMED) {
+                    if (activity.isDestroyed || activity.isFinishing || activity.isChangingConfigurations) {
+                        adData.destroy()
                         return@let
                     }
                     val adView = activity.layoutInflater
                         .inflate(R.layout.layout_result_native_ec, null) as NativeAdView
                     // 对应原生组件
-                    setResultNativeComponent(it, adView)
-                    binding.ecAdFrame.removeAllViews()
-                    binding.ecAdFrame.addView(adView)
+                    setResultNativeComponent(adData, adView)
+                    binding.ecAdFrame.apply {
+                        removeAllViews()
+                        addView(adView)
+                    }
                     binding.resultAdEc = true
                     recordNumberOfAdDisplaysEc()
-                    whetherToShowEc = true
+                    adBase.whetherToShowEc = true
                     App.nativeAdRefreshEc = false
-                    appAdDataEc = null
+                    adBase.appAdDataEc = null
                     KLog.d(logTagEc, "result--原生广告--展示")
                     //重新缓存
-                    advertisementLoadingEc(activity)
+                    AdBase.getResultInstance().advertisementLoadingEc(activity)
                 }
             }
-
         }
     }
 
@@ -189,6 +135,8 @@ class EcLoadResultAd {
             adView.mediaView?.apply { setImageScaleType(ImageView.ScaleType.CENTER_CROP) }
                 ?.setMediaContent(it)
         }
+        adView.mediaView?.clipToOutline=true
+        adView.mediaView?.outlineProvider= RoundCornerOutlineProvider(8f)
         // These assets aren't guaranteed to be in every UnifiedNativeAd, so it's important to
         // check before trying to display them.
         if (nativeAd.body == null) {

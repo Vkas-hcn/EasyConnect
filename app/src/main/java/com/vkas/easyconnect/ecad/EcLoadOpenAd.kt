@@ -12,6 +12,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.vkas.easyconnect.ecapp.App
+import com.vkas.easyconnect.ecbase.AdBase
 import com.vkas.easyconnect.ecbean.EcAdBean
 import com.vkas.easyconnect.ecenevt.Constant
 import com.vkas.easyconnect.ecenevt.Constant.logTagEc
@@ -24,71 +25,13 @@ import com.vkas.easyconnect.ecutils.KLog
 import com.xuexiang.xutil.net.JsonUtil
 import java.util.*
 
-class EcLoadOpenAd {
-    companion object {
-        fun getInstance() = InstanceHelper.openLoadEc
-    }
-
-    object InstanceHelper {
-        val openLoadEc = EcLoadOpenAd()
-    }
-
-    var appAdDataEc: Any? = null
-
-    // 是否正在加载中
-    var isLoadingEc = false
-
-    //加载时间
-    private var loadTimeEc: Long = Date().time
-
-    // 是否展示
-    var whetherToShowEc = false
-
-    // openIndex
-    var adIndexEc = 0
-    // 是否是第一遍轮训
-    private var isFirstRotation:Boolean=false
-    /**
-     * 广告加载前判断
-     */
-    fun advertisementLoadingEc(context: Context) {
-        App.isAppOpenSameDayEc()
-        if (EasyConnectUtils.isThresholdReached()) {
-            KLog.d(logTagEc, "广告达到上线")
-            return
-        }
-        KLog.d(logTagEc, "open--isLoading=${isLoadingEc}")
-
-        if (isLoadingEc) {
-            KLog.d(logTagEc, "open--广告加载中，不能再次加载")
-            return
-        }
-        isFirstRotation =false
-        if (appAdDataEc == null) {
-            isLoadingEc = true
-            loadStartupPageAdvertisementEc(context, getAdServerDataEc())
-        }
-        if (appAdDataEc != null && !whetherAdExceedsOneHour(loadTimeEc)) {
-            isLoadingEc = true
-            appAdDataEc = null
-            loadStartupPageAdvertisementEc(context, getAdServerDataEc())
-        }
-    }
-
-    /**
-     * 广告是否超过过期（false:过期；true：未过期）
-     */
-    private fun whetherAdExceedsOneHour(loadTime: Long): Boolean {
-        val dateDifference: Long = Date().time - loadTime
-        val numMilliSecondsPerHour: Long = 3600000
-        return dateDifference < numMilliSecondsPerHour
-    }
-
+object EcLoadOpenAd {
+    private val adBase = AdBase.getOpenInstance()
     /**
      * 加载启动页广告
      */
     private fun loadStartupPageAdvertisementEc(context: Context, adData: EcAdBean) {
-        if (adData.ec_open.getOrNull(adIndexEc)?.ec_type == "screen") {
+        if (adData.ec_open.getOrNull(adBase.adIndexEc)?.ec_type == "screen") {
             loadStartInsertAdEc(context, adData)
         } else {
             loadOpenAdvertisementEc(context, adData)
@@ -98,16 +41,16 @@ class EcLoadOpenAd {
     /**
      * 加载开屏广告
      */
-    private fun loadOpenAdvertisementEc(context: Context, adData: EcAdBean) {
+     fun loadOpenAdvertisementEc(context: Context, adData: EcAdBean) {
         KLog.e("loadOpenAdvertisementEc", "adData().ec_open=${JsonUtil.toJson(adData.ec_open)}")
         KLog.e(
             "loadOpenAdvertisementEc",
-            "id=${JsonUtil.toJson(takeSortedAdIDEc(adIndexEc, adData.ec_open))}"
+            "id=${JsonUtil.toJson(takeSortedAdIDEc(adBase.adIndexEc, adData.ec_open))}"
         )
 
-        val id = takeSortedAdIDEc(adIndexEc, adData.ec_open)
+        val id = takeSortedAdIDEc(adBase.adIndexEc, adData.ec_open)
 
-        KLog.d(logTagEc, "open--开屏广告id=$id;权重=${adData.ec_open.getOrNull(adIndexEc)?.ec_weight}")
+        KLog.d(logTagEc, "open--开屏广告id=$id;权重=${adData.ec_open.getOrNull(adBase.adIndexEc)?.ec_weight}")
         val request = AdRequest.Builder().build()
         AppOpenAd.load(
             context,
@@ -116,24 +59,24 @@ class EcLoadOpenAd {
             AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
-                    loadTimeEc = Date().time
-                    isLoadingEc = false
-                    appAdDataEc = ad
+                    adBase.loadTimeEc = Date().time
+                    adBase.isLoadingEc = false
+                    adBase.appAdDataEc = ad
 
                     KLog.d(logTagEc, "open--开屏广告加载成功")
                 }
 
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    isLoadingEc = false
-                    appAdDataEc = null
-                    if (adIndexEc < adData.ec_open.size - 1) {
-                        adIndexEc++
+                    adBase.isLoadingEc = false
+                    adBase.appAdDataEc = null
+                    if (adBase.adIndexEc < adData.ec_open.size - 1) {
+                        adBase.adIndexEc++
                         loadStartupPageAdvertisementEc(context, adData)
                     } else {
-                        adIndexEc = 0
-                        if(!isFirstRotation){
-                            advertisementLoadingEc(context)
-                            isFirstRotation =true
+                        adBase.adIndexEc = 0
+                        if(!adBase.isFirstRotation){
+                            AdBase.getOpenInstance().advertisementLoadingEc(context)
+                            adBase.isFirstRotation =true
                         }
                     }
                     KLog.d(logTagEc, "open--开屏广告加载失败: " + loadAdError.message)
@@ -147,16 +90,16 @@ class EcLoadOpenAd {
      * 开屏广告回调
      */
     private fun advertisingOpenCallbackEc() {
-        if (appAdDataEc !is AppOpenAd) {
+        if (adBase.appAdDataEc !is AppOpenAd) {
             return
         }
-        (appAdDataEc as AppOpenAd).fullScreenContentCallback =
+        (adBase.appAdDataEc as AppOpenAd).fullScreenContentCallback =
             object : FullScreenContentCallback() {
                 //取消全屏内容
                 override fun onAdDismissedFullScreenContent() {
                     KLog.d(logTagEc, "open--关闭开屏内容")
-                    whetherToShowEc = false
-                    appAdDataEc = null
+                    adBase.whetherToShowEc = false
+                    adBase.appAdDataEc = null
                     if (!App.whetherBackgroundEc) {
                         LiveEventBus.get<Boolean>(Constant.OPEN_CLOSE_JUMP)
                             .post(true)
@@ -165,17 +108,17 @@ class EcLoadOpenAd {
 
                 //全屏内容无法显示时调用
                 override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                    whetherToShowEc = false
-                    appAdDataEc = null
+                    adBase.whetherToShowEc = false
+                    adBase.appAdDataEc = null
                     KLog.d(logTagEc, "open--全屏内容无法显示时调用")
                 }
 
                 //显示全屏内容时调用
                 override fun onAdShowedFullScreenContent() {
-                    appAdDataEc = null
-                    whetherToShowEc = true
+                    adBase.appAdDataEc = null
+                    adBase.whetherToShowEc = true
                     recordNumberOfAdDisplaysEc()
-                    adIndexEc = 0
+                    adBase.adIndexEc = 0
                     KLog.d(logTagEc, "open---开屏广告展示")
                 }
 
@@ -192,20 +135,20 @@ class EcLoadOpenAd {
      */
     fun displayOpenAdvertisementEc(activity: AppCompatActivity): Boolean {
 
-        if (appAdDataEc == null) {
+        if (adBase.appAdDataEc == null) {
             KLog.d(logTagEc, "open---开屏广告加载中。。。")
             return false
         }
-        if (whetherToShowEc || activity.lifecycle.currentState != Lifecycle.State.RESUMED) {
+        if (adBase.whetherToShowEc || activity.lifecycle.currentState != Lifecycle.State.RESUMED) {
             KLog.d(logTagEc, "open---前一个开屏广告展示中或者生命周期不对")
             return false
         }
-        if (appAdDataEc is AppOpenAd) {
+        if (adBase.appAdDataEc is AppOpenAd) {
             advertisingOpenCallbackEc()
-            (appAdDataEc as AppOpenAd).show(activity)
+            (adBase.appAdDataEc as AppOpenAd).show(activity)
         } else {
             startInsertScreenAdCallbackEc()
-            (appAdDataEc as InterstitialAd).show(activity)
+            (adBase.appAdDataEc as InterstitialAd).show(activity)
         }
         return true
     }
@@ -213,12 +156,12 @@ class EcLoadOpenAd {
     /**
      * 加载启动页插屏广告
      */
-    private fun loadStartInsertAdEc(context: Context, adData: EcAdBean) {
+     fun loadStartInsertAdEc(context: Context, adData: EcAdBean) {
         val adRequest = AdRequest.Builder().build()
-        val id = takeSortedAdIDEc(adIndexEc, adData.ec_open)
+        val id = takeSortedAdIDEc(adBase.adIndexEc, adData.ec_open)
         KLog.d(
             logTagEc,
-            "open--插屏广告id=$id;权重=${adData.ec_open.getOrNull(adIndexEc)?.ec_weight}"
+            "open--插屏广告id=$id;权重=${adData.ec_open.getOrNull(adBase.adIndexEc)?.ec_weight}"
         )
 
         InterstitialAd.load(
@@ -228,20 +171,20 @@ class EcLoadOpenAd {
             object : InterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {
                     adError.toString().let { KLog.d(logTagEc, "open---连接插屏加载失败=$it") }
-                    isLoadingEc = false
-                    appAdDataEc = null
-                    if (adIndexEc < adData.ec_open.size - 1) {
-                        adIndexEc++
+                    adBase.isLoadingEc = false
+                    adBase.appAdDataEc = null
+                    if (adBase.adIndexEc < adData.ec_open.size - 1) {
+                        adBase.adIndexEc++
                         loadStartupPageAdvertisementEc(context, adData)
                     } else {
-                        adIndexEc = 0
+                        adBase.adIndexEc = 0
                     }
                 }
 
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                    loadTimeEc = Date().time
-                    isLoadingEc = false
-                    appAdDataEc = interstitialAd
+                    adBase.loadTimeEc = Date().time
+                    adBase.isLoadingEc = false
+                    adBase.appAdDataEc = interstitialAd
                     KLog.d(logTagEc, "open--启动页插屏加载完成")
                 }
             })
@@ -251,10 +194,10 @@ class EcLoadOpenAd {
      * StartInsert插屏广告回调
      */
     private fun startInsertScreenAdCallbackEc() {
-        if (appAdDataEc !is InterstitialAd) {
+        if (adBase.appAdDataEc !is InterstitialAd) {
             return
         }
-        (appAdDataEc as InterstitialAd).fullScreenContentCallback =
+        (adBase.appAdDataEc as InterstitialAd).fullScreenContentCallback =
             object : FullScreenContentCallback() {
                 override fun onAdClicked() {
                     // Called when a click is recorded for an ad.
@@ -269,15 +212,15 @@ class EcLoadOpenAd {
                         LiveEventBus.get<Boolean>(Constant.OPEN_CLOSE_JUMP)
                             .post(true)
                     }
-                    appAdDataEc = null
-                    whetherToShowEc = false
+                    adBase.appAdDataEc = null
+                    adBase.whetherToShowEc = false
                 }
 
                 override fun onAdFailedToShowFullScreenContent(p0: AdError) {
                     // Called when ad fails to show.
                     KLog.d(logTagEc, "Ad failed to show fullscreen content.")
-                    appAdDataEc = null
-                    whetherToShowEc = false
+                    adBase.appAdDataEc = null
+                    adBase.whetherToShowEc = false
                 }
 
                 override fun onAdImpression() {
@@ -286,11 +229,11 @@ class EcLoadOpenAd {
                 }
 
                 override fun onAdShowedFullScreenContent() {
-                    appAdDataEc = null
+                    adBase.appAdDataEc = null
                     recordNumberOfAdDisplaysEc()
                     // Called when ad is shown.
-                    whetherToShowEc = true
-                    adIndexEc = 0
+                    adBase.whetherToShowEc = true
+                    adBase.adIndexEc = 0
                     KLog.d(logTagEc, "open----插屏show")
                 }
             }

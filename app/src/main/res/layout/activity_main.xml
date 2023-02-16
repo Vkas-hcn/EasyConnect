@@ -180,9 +180,8 @@
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="243dp"
+                android:layout_height="253dp"
                 android:layout_margin="14dp"
-                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
@@ -191,7 +190,6 @@
                     android:id="@+id/ec_ad_frame"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_connect"
                     android:visibility="@{vpnAdEc ? View.VISIBLE : View.GONE}" />
 
                 <ImageView

@@ -13,6 +13,7 @@ import com.vkas.easyconnect.R
 import com.vkas.easyconnect.databinding.ActivityServiceListEcBinding
 import com.vkas.easyconnect.ecad.EcLoadBackAd
 import com.vkas.easyconnect.ecapp.App
+import com.vkas.easyconnect.ecbase.AdBase
 import com.vkas.easyconnect.ecbase.BaseActivity
 import com.vkas.easyconnect.ecbean.EcVpnBean
 import com.vkas.easyconnect.ecenevt.Constant
@@ -68,7 +69,7 @@ class ServiceListEcActivity : BaseActivity<ActivityServiceListEcBinding, Service
         super.initData()
         initSelectRecyclerView()
         viewModel.getServerListData()
-        EcLoadBackAd.getInstance().whetherToShowEc = false
+        AdBase.getBackInstance().whetherToShowEc = false
     }
 
     override fun initViewObservable() {
@@ -153,7 +154,7 @@ class ServiceListEcActivity : BaseActivity<ActivityServiceListEcBinding, Service
             finish()
             return
         }
-        if(!EcLoadBackAd.getInstance().displayBackAdvertisementEc(this)){
+        if(!EcLoadBackAd.displayBackAdvertisementEc(this)){
             finish()
         }
     }
